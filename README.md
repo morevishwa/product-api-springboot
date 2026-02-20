@@ -63,7 +63,7 @@ Controller → Service → Repository → Database
 - Spring Security filter chain (no sessions)
 
 ### Public Endpoints
-- `/api/auth/**`
+- `/api/v1/auth/**`
 - `/swagger-ui.html`
 - `/v3/api-docs/**`
 
