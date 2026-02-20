@@ -1,5 +1,4 @@
 package com.zest.productapi.controller;
-
 import com.zest.productapi.dto.ProductRequest;
 import com.zest.productapi.dto.ProductResponse;
 import com.zest.productapi.entity.Item;
@@ -23,22 +22,46 @@ public class ProductController {
 
     private final ProductService productService;
 
+
     @PostMapping
-    public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody ProductRequest request) {
+    public ResponseEntity<ProductResponse> createProduct(
+            @Valid @RequestBody ProductRequest request) {
+
         Product product = Product.builder()
                 .productName(request.getProductName())
                 .createdBy(request.getCreatedBy())
                 .build();
 
-        Product saved = productService.createProduct(product);
 
-        return new ResponseEntity<>(mapToResponse(saved), HttpStatus.CREATED);
+        if (request.getItems() != null && !request.getItems().isEmpty()) {
+
+            List<Item> items = request.getItems().stream()
+                    .map(itemRequest -> Item.builder()
+                            .quantity(itemRequest.getQuantity())
+                            .product(product) // 🔥 sets product_id
+                            .build())
+                    .toList();
+
+            product.setItems(items);
+        }
+
+        Product savedProduct = productService.createProduct(product);
+
+        return new ResponseEntity<>(
+                mapToResponse(savedProduct),
+                HttpStatus.CREATED
+        );
     }
+
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductResponse> getProduct(@PathVariable Integer id) {
-        return ResponseEntity.ok(mapToResponse(productService.getProductById(id)));
+    public ResponseEntity<ProductResponse> getProduct(
+            @PathVariable Integer id) {
+
+        Product product = productService.getProductById(id);
+        return ResponseEntity.ok(mapToResponse(product));
     }
+
 
     @GetMapping
     public ResponseEntity<Page<ProductResponse>> getAllProducts(
@@ -51,6 +74,7 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
+
     @PutMapping("/{id}")
     public ResponseEntity<ProductResponse> updateProduct(
             @PathVariable Integer id,
@@ -61,10 +85,11 @@ public class ProductController {
                 .modifiedBy(request.getCreatedBy())
                 .build();
 
-        return ResponseEntity.ok(
-                mapToResponse(productService.updateProduct(id, product))
-        );
+        Product updated = productService.updateProduct(id, product);
+
+        return ResponseEntity.ok(mapToResponse(updated));
     }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Integer id) {
@@ -72,10 +97,16 @@ public class ProductController {
         return ResponseEntity.noContent().build();
     }
 
+
     @GetMapping("/{id}/items")
-    public ResponseEntity<List<Item>> getItemsByProduct(@PathVariable Integer id) {
-        return ResponseEntity.ok(productService.getItemsByProductId(id));
+    public ResponseEntity<List<Item>> getItemsByProduct(
+            @PathVariable Integer id) {
+
+        return ResponseEntity.ok(
+                productService.getItemsByProductId(id)
+        );
     }
+
 
     private ProductResponse mapToResponse(Product product) {
         return ProductResponse.builder()

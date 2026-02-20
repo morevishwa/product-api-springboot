@@ -1,14 +1,19 @@
 package com.zest.productapi.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
+import lombok.*;
 
-@Data
+import java.util.List;
+
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProductRequest {
 
-    @NotBlank(message = "Product name is mandatory")
     private String productName;
-
-    @NotBlank(message = "Created by is mandatory")
     private String createdBy;
+
+
+    private List<ItemRequest> items;
 }
